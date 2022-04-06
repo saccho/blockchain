@@ -1,20 +1,49 @@
-use blockchain::{Block, Hashable};
+use blockchain::{now, Block, Blockchain};
 
 fn main() {
+    let difficulty = 0x000fffffffffffffffffffffffffffff;
+
     let mut block = Block::new(
         0,
         0,
         vec![0; 32],
-        118318,
+        0,
         "Genesis block!".to_owned(),
-        0x0000ffffffffffffffffffffffffffff,
+        difficulty,
     );
 
-    block.hash = block.hash();
+    block.mine();
+    println!("Mined genesis block {:?}", &block);
 
-    println!("{:?}", &block);
+    let mut last_hash = block.hash.clone();
 
-    // block.mine();
+    let mut blockchain = Blockchain {
+        blocks: vec![block],
+    };
 
-    // println!("{:?}", &block);
+    println!("Verify: {}", &blockchain.verify());
+
+    for i in 1..=10 {
+        let mut block = Block::new(
+            i,
+            now(),
+            last_hash,
+            0,
+            "Another block".to_owned(),
+            difficulty,
+        );
+
+        block.mine();
+        println!("Mined block {:?}", &block);
+
+        last_hash = block.hash.clone();
+
+        blockchain.blocks.push(block);
+
+        println!("Verify: {}", &blockchain.verify());
+    }
+
+    blockchain.blocks[3].prev_block_hash[18] = 8;
+
+    println!("Verify: {}", &blockchain.verify());
 }
